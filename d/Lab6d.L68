@@ -1,0 +1,79 @@
+00008000 Starting Address
+Assembler used: EASy68K Editor/Assembler v5.16.01
+Created On: 2022-11-11 4:43:13 PM
+
+00000000                             1  *-----------------------------------------------------------
+00000000                             2  * Title      :
+00000000                             3  * Written by :
+00000000                             4  * Date       :
+00000000                             5  * Description:
+00000000                             6  *-----------------------------------------------------------
+00000000                             7  
+00000000  =0000000C                  8  nOffset     EQU         12                           ;displacement from frame pointer
+00000000  =FFFFFFFC                  9  quoOffset   EQU         -4                          ;displacement from frame pointer
+00000000  =FFFFFFF8                 10  remOffset   EQU         -8
+00000000                            11  
+00008000                            12              ORG         $8000
+00008000  3F3C 0019                 13  START:      MOVE.W      #25,-(A7)                    ;push n onto stack
+00008004  2F3C 00000000             14              MOVE.L      #0,-(A7)
+0000800A  6100 000A                 15              BSR         display                     ;call subroutine
+0000800E  4FEF 0002                 16              LEA         2(A7),A7                    ;remove parameter from stack
+00008012                            17              
+00008012  FFFF FFFF                 18              SIMHALT         
+00008016                            19      
+00008016                            20  
+00008016  4E56 FFF8                 21  display     LINK        A6,#-8                      ;allocate storage 
+0000801A  2F00                      22              MOVE.L      D0,-(A7)                    ;save working register
+0000801C                            23  *            
+0000801C                            24  *           if(!n) -> n == 0
+0000801C                            25  *
+0000801C  0C6E 0000 000C            26              CMPI        #0,nOffset(A6)              ;is n = 0?
+00008022  6600 0002                 27              BNE         L1                          ;no       
+00008026                            28              
+00008026  302E 000C                 29  L1          MOVE.W      nOffset(A6),D0              ;get n
+0000802A  80FC 000A                 30              DIVU        #10,D0                      ;n/10
+0000802E  4240                      31              CLR.W       D0                          ;delete quotient
+00008030  4840                      32              SWAP        D0                          ;modulus from top to bottom 16 bits
+00008032  2D40 FFF8                 33              MOVE.L      D0,remOffset(A6)            ;remainder = n % 10
+00008036                            34              
+00008036  4280                      35              CLR.L       D0                          ;clear D0
+00008038                            36              
+00008038  302E 000C                 37              MOVE.W      nOffset(A6),D0              ;get n
+0000803C  80FC 000A                 38              DIVU        #10,D0                      ;n / 10
+00008040  3D40 FFFC                 39              MOVE.W      D0,quoOffset(A6)            ;update quotient
+00008044                            40              
+00008044  4280                      41              CLR.L       D0                          ;clear D0
+00008046  7003                      42              MOVE.L      #3,D0                       ;display singed number task
+00008048  322E FFFC                 43              MOVE.W      quoOffset(A6),D1                   ;move quo to D1 to be displayed
+0000804C  4E4F                      44              TRAP        #15                         ;output remainder
+0000804E                            45              
+0000804E  3F2E FFFC                 46              MOVE.W      quoOffset(A6),-(A7)         ;push quotient
+00008052  2F2E FFF8                 47              MOVE.L      remOffset(A6),-(A7)         ;push remainder
+00008056  61BE                      48              BSR         display                         ;recursive
+00008058  4FEF 0002                 49              LEA         2(A7),A7
+0000805C                            50              
+0000805C                            51              
+0000805C  201F                      52  L2          MOVE.L      (A7)+,D0                    ;restore working registre
+0000805E  4E5E                      53              UNLK        A6
+00008060  4E75                      54              RTS
+00008062                            55  
+00008062                            56                
+00008062                            57  
+00008062                            58  
+00008062                            59  
+00008062                            60              END             START        
+
+No errors detected
+No warnings generated
+
+
+SYMBOL TABLE INFORMATION
+Symbol-name         Value
+-------------------------
+DISPLAY             8016
+L1                  8026
+L2                  805C
+NOFFSET             C
+QUOOFFSET           FFFFFFFC
+REMOFFSET           FFFFFFF8
+START               8000
